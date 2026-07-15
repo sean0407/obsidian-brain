@@ -1,113 +1,146 @@
 # obsidian-brain
 
-**A shared second brain for AI agents.**
+**Connect any LLM to your Obsidian vault — with Karpathy LLM-wiki structure check.**
 
-Every agent writes to the same Obsidian vault. Future agents plug in with a single line of code.
+> A pattern for personal knowledge bases: sources stay raw, the wiki grows, the LLM does the maintenance.
 
-```python
-from obsidian_brain import Brain
+Inspired by [Andrej Karpathy's LLM-wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
 
-brain = Brain(vault_path="./my-vault")
-brain.push(
-    agent="researcher",
-    title="Claude 4 vs GPT-5",
-    content="After testing both...",
-    tags=["AI", "comparison"]
-)
+---
+
+## What it does
+
+After installing, obsidian-brain will:
+
+1. **Connect** to your local Obsidian vault
+2. **Audit** whether it follows the Karpathy LLM-wiki structure
+3. **Suggest** what to add or change (without modifying your data)
+4. Provide a **CLI** for agents to read/write/audit
+
+```
+$ obrain init
+$ obrain audit
+
+============================================================
+  obsidian-brain  /  Karpathy LLM-wiki Audit
+============================================================
+
+Status: NEEDS WORK
+Score:  45 / 100
+...
 ```
 
-## Features
-
-- **Shared vault** — all agents write to the same Obsidian wiki
-- **Agent namespaces** — each agent gets its own folder: `researcher/`, `writer/`, `scout/`
-- **Auto git sync** — changes auto-commit and push to GitHub
-- **Wiki-links** — notes auto-link to each other via `[[bidirectional links]]`
-- **Plug-and-play** — new agents need only one import to join
+---
 
 ## Install
 
-```bash
-pip install obsidian-brain
+### One-line install (Windows)
+```powershell
+irm https://raw.githubusercontent.com/sean0407/obsidian-brain/main/install.ps1 | iex
 ```
 
-Or clone and use locally:
-
+### One-line install (macOS/Linux)
 ```bash
-git clone https://github.com/YOUR_USER/obsidian-brain.git
+curl -fsSL https://raw.githubusercontent.com/sean0407/obsidian-brain/main/install.sh | bash
+```
+
+### Manual
+```bash
+git clone https://github.com/sean0407/obsidian-brain.git
 cd obsidian-brain
+pip install python-frontmatter pyyaml
 ```
+
+---
 
 ## Quick Start
 
-### 1. Configure
+### 1. Configure your vault path
 
-Create `config.yaml` in the project root:
-
+Edit `config.yaml`:
 ```yaml
-vault_path: "/path/to/your/Obsidian/Vault"
-github_repo: "your-user/obsidian-brain-wiki"
-github_token: "ghp_xxxx"          # GitHub Personal Access Token
-auto_commit: true
-auto_push: true
-default_tags: ["agent", "notes"]
+vault_path: "C:/Users/Sean/OneDrive/_Obsidian"
 ```
 
-### 2. Initialize Git (optional)
+### 2. Initialize the wiki structure
 
 ```bash
-python -m obsidian_brain init --repo https://github.com/you/repo.git
+python cli.py init
 ```
 
-### 3. Agent Integration
+This creates:
+```
+your-vault/
+├── sources/           # Raw materials (immutable)
+├── wiki/
+│   ├── concepts/      # Abstract ideas
+│   ├── entities/      # People, orgs, things
+│   └── summaries/     # Source summaries
+├── queries/           # Saved Q&A
+├── CLAUDE.md          # Schema (read by your LLM)
+├── index.md           # Content catalog
+└── log.md             # Operation log
+```
 
-Any agent can now push notes:
+### 3. Audit compliance
+
+```bash
+python cli.py audit
+```
+
+### 4. Use from any agent
 
 ```python
 from obsidian_brain import Brain
 
 brain = Brain()
-
-# Register this agent
-brain.register_agent("researcher", description="Finds trending topics")
-
-# Push a note
 brain.push(
     agent="researcher",
-    title="Topic: AI Coding Assistants 2025",
-    content="# Findings\n\nClaude Code leads in...",
-    tags=["trends", "AI"],
-    link_to=["Previous Research"]
+    title="AI Trends 2025",
+    content="## Findings\n\n...",
+    tags=["AI", "trends"]
 )
 ```
 
-## Vault Structure
-
-```
-vault/
-├── researcher/          # Agent folder
-│   ├── index.md        # Auto-generated index
-│   └── ai-coding-2025.md
-├── writer/             # Another agent
-│   └── draft-claude-carousel.md
-└── graph.json          # Auto-generated link graph
-```
+---
 
 ## CLI
 
-```bash
-# Push a note from CLI
-obrain push --agent scout --title "Hot Topic" --content "..."
+| Command | Description |
+|---------|-------------|
+| `obrain init` | Create Karpathy wiki structure |
+| `obrain audit` | Check structure compliance |
+| `obrain push` | Push a note to the vault |
+| `obrain search "query"` | Full-text search |
+| `obrain recent` | Show recent notes |
 
-# Search vault
-obrain search "AI trends"
+---
 
-# Show recent notes
-obrain recent --limit 20
-```
+## The Karpathy Pattern
 
-## Extending
+This project follows the [LLM-wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f):
 
-See `plugins/base.py` for the agent plugin spec. Implement `AgentPlugin` to create reusable agent templates.
+- **Three layers:** `sources/` (raw) → `wiki/` (LLM-maintained) → `schema`
+- **Sources are immutable** — LLM reads but never writes
+- **Wiki is a persistent, compounding artifact** — knowledge accumulates
+- **`CLAUDE.md` is the schema** — tells the LLM how to operate on the wiki
+- **`index.md` is the catalog** — what every page is and where it lives
+- **`log.md` is the timeline** — what happened and when
+
+---
+
+## Integration with AI Agents
+
+Any LLM agent (Claude Code, Codex, OpenCode, Cursor) can:
+
+1. Clone this repo and run `obrain init`
+2. Read the `CLAUDE.md` it generates
+3. Follow the Ingest / Query / Lint workflow
+4. Run `obrain audit` periodically to check structure
+
+The LLM is the programmer. The wiki is the codebase. obsidian-brain is the linter.
+
+---
 
 ## License
 

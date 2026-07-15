@@ -161,6 +161,53 @@ class Brain:
         """
         return self.vault.build_graph()
 
+    def audit(self):
+        """
+        Audit the vault for Karpathy LLM-wiki compliance.
+        Returns an AuditResult with score, findings, and suggestions.
+        """
+        from .audit import audit_vault
+        return audit_vault(self.config.vault_path)
+
+    def init_wiki_structure(self, force: bool = False) -> List[str]:
+        """
+        Create the Karpathy LLM-wiki structure in the vault.
+        Creates folders and copies template files.
+
+        Returns:
+            List of paths created
+        """
+        from pathlib import Path
+        import shutil
+
+        vault = Path(self.config.vault_path)
+        template_dir = Path(__file__).parent.parent / "templates"
+        created = []
+
+        # Create folders
+        folders = ["sources", "wiki", "wiki/concepts", "wiki/entities",
+                   "wiki/summaries", "queries"]
+        for folder in folders:
+            path = vault / folder
+            if not path.exists():
+                path.mkdir(parents=True, exist_ok=True)
+                created.append(str(path))
+
+        # Copy template files (only if not exists, unless force)
+        templates = {
+            "CLAUDE.md": "CLAUDE.md",
+            "index.md": "index.md",
+            "log.md": "log.md",
+        }
+        for src_name, dest_name in templates.items():
+            src = template_dir / src_name
+            dest = vault / dest_name
+            if src.exists() and (not dest.exists() or force):
+                shutil.copy(src, dest)
+                created.append(str(dest))
+
+        return created
+
     # ── Private helpers ────────────────────────────────────────────────────────
 
     def _build_note(
