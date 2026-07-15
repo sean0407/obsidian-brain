@@ -72,6 +72,32 @@ def cmd_recent(args):
         print(f"  {n['modified'][:16]} [{n['folder']}] {n['file']}")
 
 
+def cmd_watch(args):
+    """Start auto-sync watcher."""
+    from obsidian_brain.watch import run_watcher
+    from obsidian_brain.config import Config
+    config = Config.load()
+    run_watcher(config.vault_path, debounce=args.debounce, push=not args.no_push)
+
+
+def cmd_hook(args):
+    """Record an event (ingest, note, query, etc.)."""
+    from obsidian_brain.hooks import log_event
+    from obsidian_brain.config import Config
+    config = Config.load()
+
+    tags = args.tags.split(",") if args.tags else []
+    result = log_event(
+        vault_path=config.vault_path,
+        event_type=args.type,
+        title=args.title,
+        content=args.content or "",
+        tags=tags,
+        source=args.source,
+    )
+    print(f"Logged: {result}")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="obsidian-brain — Connect LLM to Obsidian vault with Karpathy structure check",
@@ -101,6 +127,19 @@ def main():
     p_recent.add_argument("--agent", default=None)
     p_recent.add_argument("--limit", type=int, default=10)
     p_recent.set_defaults(func=cmd_recent)
+
+    p_watch = sub.add_parser("watch", help="Watch vault and auto-sync (background)")
+    p_watch.add_argument("--debounce", type=int, default=5, help="Seconds to wait before committing")
+    p_watch.add_argument("--no-push", action="store_true", help="Commit locally but don't push")
+    p_watch.set_defaults(func=cmd_watch)
+
+    p_hook = sub.add_parser("hook", help="Log an event (ingest, note, query, etc.)")
+    p_hook.add_argument("--type", required=True, choices=["ingest", "query", "lint", "note", "summary", "concept", "entity"])
+    p_hook.add_argument("--title", required=True)
+    p_hook.add_argument("--content", default="")
+    p_hook.add_argument("--tags", default="")
+    p_hook.add_argument("--source", default=None)
+    p_hook.set_defaults(func=cmd_hook)
 
     args = parser.parse_args()
     if hasattr(args, "func"):
