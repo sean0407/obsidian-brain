@@ -1,0 +1,24 @@
+# obsidian-brain configuration
+# Copy this to config.yaml and fill in your values
+
+# Path to your Obsidian vault (required)
+vault_path: "C:/Users/Sean/OneDrive/_Obsidian"
+
+# GitHub settings (optional — needed for auto-sync)
+github_repo: ""           # e.g. "your-user/your-repo"
+github_token: ""          # GitHub Personal Access Token (ghp_xxx)
+
+# Git settings
+git_branch: "main"
+auto_commit: true
+auto_push: true
+
+# Agent defaults
+default_agent: "agent"
+default_tags:
+  - "agent"
+  - "notes"
+
+# Template settings
+use_templates: true
+template_dir: "templates"
