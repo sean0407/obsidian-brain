@@ -5,7 +5,7 @@
 vault_path: "C:/Users/Sean/OneDrive/_Obsidian"
 
 # GitHub settings (optional — needed for auto-sync)
-github_repo: ""           # e.g. "your-user/your-repo"
+github_repo: "sean0407/obsidian-brain"
 github_token: ""          # GitHub Personal Access Token (ghp_xxx)
 
 # Git settings
